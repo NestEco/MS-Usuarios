@@ -16,93 +16,89 @@ import java.util.Map;
 @RequestMapping("/api/usuarios")
 @RequiredArgsConstructor
 @Slf4j
-@CrossOrigin(origins = "*")
 public class UsuarioController {
-    
+
     private final UsuarioService usuarioService;
-    
-    @GetMapping
-    public ResponseEntity<List<Usuario>> obtenerTodos() {
-        log.info("GET /api/usuarios - Obteniendo todos los usuarios");
-        return ResponseEntity.ok(usuarioService.obtenerTodos());
-    }
-    
-    @GetMapping("/{id}")
-    public ResponseEntity<Usuario> obtenerPorId(@PathVariable String id) {
-        log.info("GET /api/usuarios/{}", id);
-        return usuarioService.obtenerPorId(id)
-            .map(ResponseEntity::ok)
-            .orElse(ResponseEntity.notFound().build());
-    }
-    
-    @GetMapping("/email/{email}")
-    public ResponseEntity<Usuario> obtenerPorEmail(@PathVariable String email) {
-        log.info("GET /api/usuarios/email/{}", email);
-        return usuarioService.obtenerPorEmail(email)
-            .map(ResponseEntity::ok)
-            .orElse(ResponseEntity.notFound().build());
-    }
-    
+
+    // ── Públicos ──────────────────────────────────────────
+
     @PostMapping("/registro")
     public ResponseEntity<?> registrar(@Valid @RequestBody Usuario usuario) {
-        log.info("POST /api/usuarios/registro - Registrando: {}", usuario.getEmail());
-        
+        log.info("POST /registro - {}", usuario.getEmail());
         try {
-            Usuario nuevoUsuario = usuarioService.registrar(usuario);
-            return ResponseEntity.status(HttpStatus.CREATED).body(nuevoUsuario);
+            Usuario nuevo = usuarioService.registrar(usuario);
+            nuevo.setPassword(null); // nunca devolver el hash
+            return ResponseEntity.status(HttpStatus.CREATED).body(nuevo);
         } catch (RuntimeException e) {
-            log.error("Error al registrar usuario: {}", e.getMessage());
             return ResponseEntity.status(HttpStatus.CONFLICT)
-                .body(Map.of("error", e.getMessage()));
+                    .body(Map.of("error", e.getMessage()));
         }
     }
-    
+
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody Map<String, String> credentials) {
-        String email = credentials.get("email");
+        String email    = credentials.get("email");
         String password = credentials.get("password");
-        
-        log.info("POST /api/usuarios/login - Email: {}", email);
-        
+        log.info("POST /login - {}", email);
+
         return usuarioService.login(email, password)
-            .map(ResponseEntity::ok)
-            .orElse(ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                .body(null));
+                .<ResponseEntity<?>>map(ResponseEntity::ok)
+                .orElse(ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                        .body(Map.of("error", "Credenciales inválidas")));
     }
-    
+
+    @GetMapping("/health")
+    public ResponseEntity<Map<String, String>> health() {
+        return ResponseEntity.ok(Map.of(
+                "status",  "UP",
+                "service", "microservicio-usuarios",
+                "port",    "8080"
+        ));
+    }
+
+    // ── Protegidos (requieren token JWT) ──────────────────
+
+    @GetMapping
+    public ResponseEntity<List<Usuario>> obtenerTodos() {
+        List<Usuario> lista = usuarioService.obtenerTodos();
+        lista.forEach(u -> u.setPassword(null)); // ocultar hash
+        return ResponseEntity.ok(lista);
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<Usuario> obtenerPorId(@PathVariable String id) {
+        return usuarioService.obtenerPorId(id)
+                .map(u -> { u.setPassword(null); return ResponseEntity.ok(u); })
+                .orElse(ResponseEntity.notFound().build());
+    }
+
+    @GetMapping("/email/{email}")
+    public ResponseEntity<Usuario> obtenerPorEmail(@PathVariable String email) {
+        return usuarioService.obtenerPorEmail(email)
+                .map(u -> { u.setPassword(null); return ResponseEntity.ok(u); })
+                .orElse(ResponseEntity.notFound().build());
+    }
+
     @PutMapping("/{id}")
-    public ResponseEntity<Usuario> actualizar(
+    public ResponseEntity<?> actualizar(
             @PathVariable String id,
             @Valid @RequestBody Usuario usuario) {
-        log.info("PUT /api/usuarios/{}", id);
-        
         try {
-            return ResponseEntity.ok(usuarioService.actualizar(id, usuario));
+            Usuario actualizado = usuarioService.actualizar(id, usuario);
+            actualizado.setPassword(null);
+            return ResponseEntity.ok(actualizado);
         } catch (RuntimeException e) {
-            log.error("Error al actualizar usuario: {}", e.getMessage());
             return ResponseEntity.notFound().build();
         }
     }
-    
+
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> eliminar(@PathVariable String id) {
-        log.info("DELETE /api/usuarios/{}", id);
-        
         try {
             usuarioService.eliminar(id);
             return ResponseEntity.noContent().build();
         } catch (RuntimeException e) {
-            log.error("Error al eliminar usuario: {}", e.getMessage());
             return ResponseEntity.notFound().build();
         }
-    }
-    
-    @GetMapping("/health")
-    public ResponseEntity<Map<String, String>> healthCheck() {
-        return ResponseEntity.ok(Map.of(
-            "status", "UP",
-            "service", "microservicio-usuarios",
-            "port", "8080"
-        ));
     }
 }
