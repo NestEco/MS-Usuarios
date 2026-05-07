@@ -8,8 +8,9 @@ import java.util.Optional;
 
 @Repository
 public interface UsuarioRepository extends JpaRepository<Usuario, String> {
-    
+
     Optional<Usuario> findByEmail(String email);
     boolean existsByEmail(String email);
-    Optional<Usuario> findByEmailAndPassword(String email, String password);
+
+    // findByEmailAndPassword eliminado — el login ahora usa BCrypt via PasswordEncoder
 }
