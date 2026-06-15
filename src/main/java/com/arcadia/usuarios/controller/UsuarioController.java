@@ -1,7 +1,7 @@
-package com.appvet.usuarios.controller;
+package com.arcadia.usuarios.controller;
 
-import com.appvet.usuarios.model.Usuario;
-import com.appvet.usuarios.service.UsuarioService;
+import com.arcadia.usuarios.model.Usuario;
+import com.arcadia.usuarios.service.UsuarioService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -52,7 +52,7 @@ public class UsuarioController {
         return ResponseEntity.ok(Map.of(
                 "status",  "UP",
                 "service", "microservicio-usuarios",
-                "port",    "8080"
+                "port",    "8085"
         ));
     }
 
@@ -89,6 +89,24 @@ public class UsuarioController {
             return ResponseEntity.ok(actualizado);
         } catch (RuntimeException e) {
             return ResponseEntity.notFound().build();
+        }
+    }
+
+    @PutMapping("/{id}/rol")
+    public ResponseEntity<?> actualizarRol(
+            @PathVariable String id,
+            @RequestBody Map<String, String> body) {
+        String nuevoRol = body.get("rol");
+        if (nuevoRol == null || (!nuevoRol.equalsIgnoreCase("ADMIN") && !nuevoRol.equalsIgnoreCase("CLIENTE"))) {
+            return ResponseEntity.badRequest().body(Map.of("error", "Rol inválido. Debe ser 'ADMIN' o 'CLIENTE'"));
+        }
+        try {
+            Usuario actualizado = usuarioService.actualizarRol(id, nuevoRol.toUpperCase());
+            actualizado.setPassword(null);
+            return ResponseEntity.ok(actualizado);
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(Map.of("error", e.getMessage()));
         }
     }
 

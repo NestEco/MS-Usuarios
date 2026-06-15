@@ -1,8 +1,8 @@
-package com.appvet.usuarios.service;
+package com.arcadia.usuarios.service;
 
-import com.appvet.usuarios.model.Usuario;
-import com.appvet.usuarios.repository.UsuarioRepository;
-import com.appvet.usuarios.security.JwtUtils;
+import com.arcadia.usuarios.model.Usuario;
+import com.arcadia.usuarios.repository.UsuarioRepository;
+import com.arcadia.usuarios.security.JwtUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

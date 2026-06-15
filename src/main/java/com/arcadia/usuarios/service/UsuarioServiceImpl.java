@@ -1,8 +1,8 @@
-package com.appvet.usuarios.service;
+package com.arcadia.usuarios.service;
 
-import com.appvet.usuarios.model.Usuario;
-import com.appvet.usuarios.repository.UsuarioRepository;
-import com.appvet.usuarios.security.JwtUtils;
+import com.arcadia.usuarios.model.Usuario;
+import com.arcadia.usuarios.repository.UsuarioRepository;
+import com.arcadia.usuarios.security.JwtUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -45,14 +45,23 @@ public class UsuarioServiceImpl implements UsuarioService {
     public Usuario registrar(Usuario usuario) {
         log.info("Registrando usuario: {}", usuario.getEmail());
 
-        if (usuarioRepository.existsByEmail(usuario.getEmail())) {
+        boolean emailExists = usuarioRepository.existsByEmail(usuario.getEmail());
+        log.info("Verificando si email existe: {} = {}", usuario.getEmail(), emailExists);
+
+        if (emailExists) {
             throw new RuntimeException("El email ya está registrado: " + usuario.getEmail());
         }
 
         // Hashear la contraseña antes de guardar
+        log.info("Hasheando contraseña para usuario: {}", usuario.getEmail());
         usuario.setPassword(passwordEncoder.encode(usuario.getPassword()));
+        log.info("Contraseña hasheada para usuario: {}", usuario.getEmail());
 
-        return usuarioRepository.save(usuario);
+        log.info("Guardando usuario en base de datos: {}", usuario.getEmail());
+        Usuario saved = usuarioRepository.save(usuario);
+        log.info("Usuario guardado exitosamente: {}", saved.getEmail());
+
+        return saved;
     }
 
     @Override
@@ -70,6 +79,17 @@ public class UsuarioServiceImpl implements UsuarioService {
                                 passwordEncoder.encode(usuarioActualizado.getPassword()));
                     }
 
+                    return usuarioRepository.save(existente);
+                })
+                .orElseThrow(() -> new RuntimeException("Usuario no encontrado: " + id));
+    }
+
+    @Override
+    public Usuario actualizarRol(String id, String nuevoRol) {
+        log.info("Actualizando rol de usuario {} a {}", id, nuevoRol);
+        return usuarioRepository.findById(id)
+                .map(existente -> {
+                    existente.setRol(nuevoRol);
                     return usuarioRepository.save(existente);
                 })
                 .orElseThrow(() -> new RuntimeException("Usuario no encontrado: " + id));

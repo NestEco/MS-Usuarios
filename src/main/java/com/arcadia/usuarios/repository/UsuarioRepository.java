@@ -1,6 +1,6 @@
-package com.appvet.usuarios.repository;
+package com.arcadia.usuarios.repository;
 
-import com.appvet.usuarios.model.Usuario;
+import com.arcadia.usuarios.model.Usuario;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
