@@ -18,6 +18,7 @@ import java.time.LocalDateTime;
 public class Usuario {
     
     @Id
+    @GeneratedValue(strategy = GenerationType.UUID)
     @Column(name = "id", length = 36)
     private String id;
     

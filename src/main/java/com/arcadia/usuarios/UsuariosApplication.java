@@ -10,9 +10,9 @@ public class UsuariosApplication {
         SpringApplication.run(UsuariosApplication.class, args);
         System.out.println("\n========================================");
         System.out.println("👤 Microservicio Usuarios INICIADO");
-        System.out.println("📍 Puerto: 8080");
-        System.out.println("🌐 URL: http://localhost:8080/api/usuarios");
-        System.out.println("❤️  Health: http://localhost:8080/api/usuarios/health");
+        System.out.println("📍 Puerto: 8085");
+        System.out.println("🌐 URL: http://localhost:8085/api/usuarios");
+        System.out.println("❤️  Health: http://localhost:8085/api/usuarios/health");
         System.out.println("========================================\n");
     }
 }

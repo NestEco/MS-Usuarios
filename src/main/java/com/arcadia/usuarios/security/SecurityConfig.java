@@ -61,6 +61,7 @@ public class SecurityConfig {
                     // Solo ADMIN puede eliminar usuarios o ver la lista completa
                     .requestMatchers(HttpMethod.DELETE, "/api/usuarios/**").hasRole("ADMIN")
                     .requestMatchers(HttpMethod.GET, "/api/usuarios").hasRole("ADMIN")
+                    .requestMatchers(HttpMethod.PUT, "/api/usuarios/*/rol").hasRole("ADMIN")
                     // Cualquier usuario autenticado puede acceder al resto
                     .anyRequest().authenticated()
             )
